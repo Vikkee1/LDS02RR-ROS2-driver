@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  build-and-test:
+  ros2-ci:
     runs-on: ubuntu-22.04
 
     strategy:
@@ -16,36 +16,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup ROS 2
-        uses: ros-tooling/setup-ros@v0.7
+      - name: ROS 2 CI
+        uses: ros-tooling/action-ros-ci@v0.3
         with:
-          required-ros-distributions: ${{ matrix.ros_distro }}
-
-      - name: Install dependencies
-        uses: ros-tooling/action-rosdep@v0.4
-        with:
-          rosdep-check: true
-          rosdep-install: true
-          skip-keys: |
-            # add keys if you have unavailable system deps
-
-      - name: Build
-        uses: ros-tooling/action-colcon-build@v0.4
-        with:
-          workspace: .
-          colcon-defaults: |
-            {
-              "build": {
-                "symlink-install": true
-              }
-            }
-
-      - name: Test
-        uses: ros-tooling/action-colcon-test@v0.4
-        with:
-          workspace: .
-
-      - name: Test results
-        uses: ros-tooling/action-colcon-test-result@v0.1
-        with:
-          workspace: .
+          ros_distro: ${{ matrix.ros_distro }}
+          package_name: |
+            my_cpp_pkg
+            my_python_pkg
+          target_ws: .

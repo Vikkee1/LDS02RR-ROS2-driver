@@ -5,22 +5,13 @@ on:
   pull_request:
 
 jobs:
-  ros2-ci:
-    runs-on: ubuntu-22.04
-
-    strategy:
-      matrix:
-        ros_distro: [humble]
-
+  build_and_test_ros2:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: ROS 2 CI
-        uses: ros-tooling/action-ros-ci@v0.3
+      - uses: ros-tooling/setup-ros@v0.7
         with:
-          ros_distro: ${{ matrix.ros_distro }}
-          package_name: |
-            my_cpp_pkg
-            my_python_pkg
-          target_ws: .
+          required-ros-distributions: humble
+      - uses: ros-tooling/action-ros-ci@v0.4
+        with:
+          package-name: lds_lidar
+          target-ros2-distro: humlbe

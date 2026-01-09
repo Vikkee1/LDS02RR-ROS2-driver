@@ -7,10 +7,25 @@ on:
 jobs:
   build_and_test_ros2:
     runs-on: ubuntu-22.04
+
     steps:
-      - uses: ros-tooling/setup-ros@v0.7
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 🔐 Solution 1: GitHub token authentication for private repos
+      - name: Configure git authentication
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
+
+      - name: Setup ROS 2
+        uses: ros-tooling/setup-ros@v0.7
         with:
           required-ros-distributions: humble
-      - uses: ros-tooling/action-ros-ci@v0.4
+
+      - name: Build and test ROS 2 workspace
+        uses: ros-tooling/action-ros-ci@v0.4
         with:
           target-ros2-distro: humble
+          target_ws: .

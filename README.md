@@ -18,5 +18,9 @@ Required hardware:
 
 **Node:** lds_lidar
 
+![video](images/20260109_202151.mp4)
+
 ## RVIZ 
 ![screenshot](images/room_lidarscan.png)
+
+![screenshot](images/room_map.png)

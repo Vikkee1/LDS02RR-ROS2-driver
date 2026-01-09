@@ -11,8 +11,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      # 🔐 Solution 1: GitHub token authentication for private repos
+        
       - name: Configure git authentication
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -13,5 +13,4 @@ jobs:
           required-ros-distributions: humble
       - uses: ros-tooling/action-ros-ci@v0.4
         with:
-          package-name: lds_lidar
           target-ros2-distro: humble

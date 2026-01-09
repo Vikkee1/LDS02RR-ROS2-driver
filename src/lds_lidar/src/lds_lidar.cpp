@@ -12,7 +12,7 @@ static const size_t PACKET_SIZE = 22;
 LDS_Lidar::LDS_Lidar() 
     : Node("lds_lidar") 
 {
-    // 1. Declare Parameters
+    // Declare Parameters
     this->declare_parameter<std::string>("port", "/dev/ttyAMA0");
     this->declare_parameter<int>("baud_rate", 115200);
     this->declare_parameter<std::string>("gpio_chip", "gpiochip0");
@@ -23,7 +23,7 @@ LDS_Lidar::LDS_Lidar()
     std::string gpio_chip_name = this->get_parameter("gpio_chip").as_string();
     int gpio_line_num = this->get_parameter("gpio_line").as_int();
 
-    // 2. Initialize GPIO (Motor Enable) if requested
+    // Initialize GPIO (Motor Enable) if requested
     if (gpio_line_num >= 0) {
         chip = gpiod_chip_open_by_name(gpio_chip_name.c_str());
         if (chip) {
@@ -44,7 +44,7 @@ LDS_Lidar::LDS_Lidar()
     }
 
     // --- Publish static TF for laser_link ---
-    tf_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
+    /*tf_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
 
     geometry_msgs::msg::TransformStamped t;
     t.header.stamp = this->now();
@@ -58,9 +58,9 @@ LDS_Lidar::LDS_Lidar()
     t.transform.rotation.z = 0.0;
     t.transform.rotation.w = 1.0;
 
-    tf_broadcaster_->sendTransform(t);
+    tf_broadcaster_->sendTransform(t);*/
 
-    // 3. Initialize UART
+    // Initialize UART
     if (!init_uart(port, baud)) {
         RCLCPP_FATAL(this->get_logger(), "Failed to open UART %s", port.c_str());
         // In a real node, you might throw or exit, but we keep it running to allow diagnostics
@@ -68,10 +68,10 @@ LDS_Lidar::LDS_Lidar()
         RCLCPP_INFO(this->get_logger(), "UART initialized on %s at %d", port.c_str(), baud);
     }
 
-    // 4. Setup ROS Interfaces
+    // Setup ROS Interfaces
     publisher_ = this->create_publisher<sensor_msgs::msg::LaserScan>("scan", 10);
     
-    // Timer runs at 50Hz (20ms) to poll serial buffer
+    // Timer (20ms) to poll serial buffer
     timer_ = this->create_wall_timer(
         std::chrono::milliseconds(50), 
         std::bind(&LDS_Lidar::timer_callback, this));
@@ -82,7 +82,7 @@ LDS_Lidar::~LDS_Lidar() {
         close(uart_fd);
     }
 
-    // Cleanup GPIO (Stop Motor)
+    // Cleanup GPIO
     if (line) {
         gpiod_line_set_value(line, 0); 
         gpiod_line_release(line);
@@ -93,7 +93,7 @@ LDS_Lidar::~LDS_Lidar() {
 }
 
 bool LDS_Lidar::init_uart(const std::string &port, int baud) {
-    uart_fd = ::open(port.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK); // NONBLOCK is crucial for timer usage
+    uart_fd = ::open(port.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (uart_fd < 0) return false;
 
     struct termios tty{};
@@ -104,7 +104,7 @@ bool LDS_Lidar::init_uart(const std::string &port, int baud) {
     switch(baud) {
         case 115200: speed = B115200; break;
         case 230400: speed = B230400; break;
-        default: speed = B115200; break; // Default
+        default: speed = B115200; break;
     }
     cfsetospeed(&tty, speed);
     cfsetispeed(&tty, speed);
@@ -114,7 +114,7 @@ bool LDS_Lidar::init_uart(const std::string &port, int baud) {
     tty.c_lflag = 0;                             
     tty.c_oflag = 0;                             
     tty.c_cc[VMIN]  = 0;                         
-    tty.c_cc[VTIME] = 0; // Pure non-blocking read
+    tty.c_cc[VTIME] = 0;
 
     tty.c_iflag &= ~(IXON | IXOFF | IXANY);      
     tty.c_cflag |= (CLOCAL | CREAD);             
@@ -129,7 +129,7 @@ bool LDS_Lidar::init_uart(const std::string &port, int baud) {
 
 uint16_t LDS_Lidar::calcChecksum(const uint8_t* p) {
     // 20 bytes data, last 2 bytes checksum
-    const int CalcCRC_Len = 10; // 20 bytes / 2
+    const int CalcCRC_Len = 10;
     uint16_t CalcCRC[CalcCRC_Len];
 
     for (int i = 0; i < CalcCRC_Len; ++i)
@@ -167,7 +167,7 @@ bool LDS_Lidar::parsePacket(const uint8_t* p, size_t len, std::vector<LidarPoint
         uint16_t dist = p[offset] | ((p[offset + 1] & 0x3F) << 8);
         uint8_t quality = p[offset + 2];
 
-        // Basic filtering
+        // Filtering
         if (quality < 10 || dist == 0 || dist > 6000) continue;
 
         float angle = base_angle + i;
@@ -196,7 +196,7 @@ void LDS_Lidar::readLidarData(std::vector<LidarPoint> &points) {
     while (rxBuffer.size() >= PACKET_SIZE) {
         auto it = std::find(rxBuffer.begin(), rxBuffer.end(), START_BYTE);
         
-        // If no header found, clear garbage but leave last few bytes just in case
+        // If no header found, clear garbage
         if (it == rxBuffer.end()) {
             rxBuffer.clear();
             break;
@@ -206,7 +206,6 @@ void LDS_Lidar::readLidarData(std::vector<LidarPoint> &points) {
         
         // Wait for full packet
         if (rxBuffer.size() - idx < PACKET_SIZE) {
-            // Optimization: Remove garbage before the header found
             if (idx > 0) rxBuffer.erase(rxBuffer.begin(), rxBuffer.begin() + idx);
             break; 
         }

@@ -5,7 +5,7 @@
 #include <vector>
 #include <cstdint>
 #include <string>
-#include <gpiod.h> // Requires libgpiod-dev
+#include <gpiod.h>
 #include <termios.h>
 #include <fcntl.h>
 #include <unistd.h>

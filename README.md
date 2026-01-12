@@ -3,13 +3,13 @@
 LDS02RR lidar ROS driver.
 
 ## Description
-
-Tested with ROS2 and ROS Humble.
+Tested with ROS2 Humble and Raspberry Pi Ubuntu Server 22.04.
 
 ## Hardware
 Required hardware:
 - LDS02RR lidar
 - Lidar interface module
+  - Control DC motor trough MOSFET with external power
 - Linux SBC (eq. Raspberry Pi / Banana Pi)
 
 ## ROS package & node
